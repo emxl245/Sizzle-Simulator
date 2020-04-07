@@ -1,0 +1,71 @@
+--loadstring(game:HttpGet('https://pastebin.com/raw/ZTcM4ZRE', true))()
+loadstring(game:HttpGet('https://pastebin.com/raw/cwDSpepQ', true))()
+local first = library:AddWindow("Sizzle Simulator Made By emxl#8163")
+local first_tab = first:AddTab('Farming')
+local this_game_sucks = false
+local meat = false
+local coin = false
+first_tab:AddSwitch('Autofarm', function(a)
+    this_game_sucks = a
+end)
+first_tab:AddSwitch('Auto Collect Meat', function(a)
+    meat = a
+end)
+first_tab:AddSwitch('Auto Collect Coins', function(a)
+    coin = a
+end)
+local RemoteEvent = game:GetService("ReplicatedStorage").RemoteEvent
+local last = math.huge
+local nearest = nil
+local id = nil
+spawn(function()
+    while wait() do
+        for i,v in pairs(game.workspace:GetChildren()) do	
+            if v:FindFirstChild('CharId') and this_game_sucks then
+                local distance = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v:FindFirstChildWhichIsA('Part').Position).magnitude
+                if distance < last then
+                    last = distance
+                    nearest = v:FindFirstChildWhichIsA('Part') 
+                    id = v.CharId.Value
+                end
+            end
+        end
+    end
+end)
+spawn(function()
+    while wait() do
+        for i,v in pairs(game.workspace:GetChildren()) do	
+            if nearest ~= nil and id ~= nil and v:FindFirstChild('CharId') and this_game_sucks and v.CharId.Value == id then
+                RemoteEvent:FireServer("Animal Selected", v.CharId.Value)
+                repeat
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = nearest.CFrame
+                for i = 1,10 do
+                    RemoteEvent:FireServer("Animal Hit", v.CharId.Value)
+                end
+                wait()
+                until not v or not v:FindFirstChild('CharId') or not v:FindFirstChildWhichIsA('Part') or not nearest or not nearest.Parent or not this_game_sucks
+                last,nearest,id = math.huge, nil, nil
+            end
+        end
+    end
+end)
+spawn(function()
+    while wait() do
+        if meat then
+            for i,v in pairs(game.workspace:GetChildren()) do 
+                if string.find(v.Name:lower(), "meat") and v.Name ~= "DropOffMeat" and v:FindFirstChild("Main") then
+                    v.Main.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+                end
+            end
+            RemoteEvent:FireServer('Drop Off Meat')
+            RemoteEvent:FireServer('Collect Grill Coins')
+        end
+        if coin then
+            for i,v in pairs(game:GetService("Workspace").Currency:GetChildren()) do
+                if v:FindFirstChildWhichIsA('Part') and v:FindFirstChildWhichIsA('Part'):FindFirstChild('TouchInterest') then
+                    v:FindFirstChildWhichIsA('Part').CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+                end
+            end
+        end
+    end
+end)
